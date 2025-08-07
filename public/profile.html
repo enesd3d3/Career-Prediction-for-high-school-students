@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profilini Tamamla</title>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f2f5; font-family: Arial, sans-serif; }
+    .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    h1 { text-align: center; margin-bottom: 1rem; font-size: 1.5rem; color: #333; }
+    .hint-btn { display: block; text-align: center; margin-bottom: 1.5rem; background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.95rem; }
+    .hint-btn:hover { text-decoration: underline; }
+    label { display: block; margin-bottom: 1rem; color: #555; }
+    input, select { width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 0.75rem; background: #17a2b8; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+    button:hover { background: #117a8b; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: #fff; padding: 1.5rem; border-radius: 8px; max-width: 360px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative; }
+    .modal-content h2 { margin-top: 0; color: #17a2b8; }
+    .modal-content ul { margin: 0.5rem 0; padding-left: 1.2rem; }
+    .close-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888; }
+    .close-btn:hover { color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Profilini Tamamla</h1>
+    <button class="hint-btn" id="hintBtn">Okumak istemiyor musun? Buraya tıkla</button>
+    <form id="profileForm">
+      <label>Ad Soyad<input type="text" name="full_name" required></label>
+      <label>Yaş<input type="number" name="age" min="10" max="100" required></label>
+      <label>Telefon<input type="tel" name="phone" pattern="\+?\d{10,15}" placeholder="5XX1234567" required></label>
+      <label>Adres (opsiyonel)<input type="text" name="address"></label>
+      <label>Alan<select name="field" required>
+        <option value="">Seçiniz…</option>
+        <option value="numerical">Sayısal</option>
+        <option value="equal_weight">Eşit Ağırlık</option>
+        <option value="no_field">Alansız</option>
+        <option value="unhappy">Bölümden Memnun Değil</option>
+      </select></label>
+      <button type="submit">Kaydet ve Devam Et</button>
+    </form>
+  </div>
+
+  <div class="modal" id="hintModal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeModal">×</button>
+      <h2>🎓 Akademide İlerleyemediğini Hissediyor Musun?</h2>
+      <p>Her şey senin kontrolünde! Başarı birçok biçimde gelir ve herkesin yolu farklıdır. Belki de akademik dünyada aradığın tutku ve mutluluğu henüz bulamadın.</p>
+      <h3>✨ Kendine İnan!</h3>
+      <ul>
+        <li>Güçlü yanlarını keşfet.</li>
+        <li>İlgi duyduğun alanlarda yeni fırsatlar ara.</li>
+        <li>Hayatın sunduğu sınırsız olanakları değerlendir.</li>
+      </ul>
+      <p>Her adımda daha güçlü ve kararlı ol, çünkü senin potansiyelin sınır tanımaz!</p>
+      <p>🚀 Haydi, Kendini Keşfetmeye Devam Et!</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('hintBtn').onclick = () => document.getElementById('hintModal').style.display = 'flex';
+    document.getElementById('closeModal').onclick = () => document.getElementById('hintModal').style.display = 'none';
+    window.onclick = e => { if (e.target.id === 'hintModal') document.getElementById('hintModal').style.display = 'none'; };
+
+    document.getElementById('profileForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const field = form.field.value;
+      localStorage.setItem('field', field);
+      const fd = new FormData(form);
+      const res = await fetch('/project2/app/save_profile.php', { method: 'POST', body: fd, credentials: 'include' });
+      if (res.ok) location.href = 'grades.html'; else alert('Hata: ' + await res.text());
+    });
+  </script>
+</body>
+</html>

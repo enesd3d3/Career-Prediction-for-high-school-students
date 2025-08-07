@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İlgi Alanları</title>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f2f5; font-family: Arial, sans-serif; }
+    .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+    h1 { text-align: center; color: #333; margin-bottom: 1rem; font-size: 1.5rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 2rem; margin-bottom: 1rem; }
+    .chip { display: flex; align-items: center; background: #e1f5fe; color: #0277bd; padding: 0.4rem 0.8rem; border-radius: 16px; font-size: 0.9rem; }
+    .chip .close { margin-left: 0.5rem; cursor: pointer; font-weight: bold; }
+    .input-group { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    input[type="text"] { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    #addBtn { padding: 0.5rem 1rem; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+    #addBtn:hover { background: #ffca2c; }
+    #suggestBtn { width: 100%; padding: 0.75rem; background: #28a745; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    #suggestBtn:disabled { background: #94d3a2; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>İlgi Alanlarını Seç</h1>
+    <div class="tags" id="tagsContainer"></div>
+    <div class="input-group">
+      <input id="interestInput" list="interestList" placeholder="Etiket yaz veya seç">
+      <datalist id="interestList">
+        <option value="Müzik"><option value="Spor"><option value="Teknoloji">
+        <option value="Kitap Okuma"><option value="Yemek Yapma"><option value="Tasarım">
+        <option value="Seyahat"><option value="Sinema"><option value="Fotoğrafçılık">
+      </datalist>
+      <button id="addBtn">Ekle</button>
+    </div>
+    <button id="suggestBtn" disabled>Mesleğimi Öner</button>
+  </div>
+
+  <script>
+    const tagsContainer = document.getElementById('tagsContainer');
+    const input = document.getElementById('interestInput');
+    const addBtn = document.getElementById('addBtn');
+    const suggestBtn = document.getElementById('suggestBtn');
+    let interests = [];
+
+    addBtn.addEventListener('click', async () => {
+      const val = input.value.trim();
+      if (!val || interests.includes(val)) return;
+      const fd = new FormData(); fd.append('interest', val);
+      const res = await fetch('/project2/app/save_interests.php', { method: 'POST', body: fd, credentials: 'include' });
+      if (!res.ok) return alert('Hata: ' + await res.text());
+      interests.push(val);
+      const chip = document.createElement('div'); chip.className = 'chip';
+      chip.innerHTML = `${val}<span class="close">×</span>`;
+      chip.querySelector('.close').onclick = () => {
+        interests = interests.filter(i => i !== val);
+        chip.remove();
+        if (interests.length === 0) suggestBtn.disabled = true;
+      };
+      tagsContainer.appendChild(chip);
+      input.value = '';
+      suggestBtn.disabled = false;
+    });
+
+    suggestBtn.addEventListener('click', () => location.href = 'suggest.html');
+  </script>
+</body>
+</html>

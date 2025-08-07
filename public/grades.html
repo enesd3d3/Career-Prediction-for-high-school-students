@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notlar</title>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f2f5; font-family: Arial, sans-serif; }
+    .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+    h1 { text-align: center; color: #333; margin-bottom: 1rem; font-size: 1.5rem; }
+    h2 { color: #555; margin: 1rem 0 0.5rem; font-size: 1.2rem; }
+    form label { display: flex; flex-direction: column; margin-bottom: 0.5rem; color: #555; }
+    form label input { margin-top: 0.3rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    #coreForm { margin-bottom: 1.5rem; }
+    #extraForm { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    #extraForm input { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    #addBtn { background: #ffc107; color: #212529; border: none; border-radius: 4px; padding: 0.5rem 1rem; cursor: pointer; }
+    #addBtn:hover { background: #e0a800; }
+    ul { list-style: none; padding: 0; margin: 0 0 1rem; }
+    ul li { background: #f8f9fa; margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 4px; display: flex; justify-content: space-between; color: #555; }
+    #nextBtn { width: 100%; padding: 0.75rem; background: #28a745; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    #nextBtn:disabled { background: #94d3a2; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Not Ekle</h1>
+    <h2>Zorunlu Dersler</h2>
+    <form id="coreForm"></form>
+
+    <h2>Ek Ders Ekle</h2>
+    <form id="extraForm">
+      <input id="extraCourse" type="text" placeholder="Ders adı">
+      <input id="extraScore" type="number" min="0" max="100" placeholder="Not">
+      <button type="button" id="addBtn">Ekle</button>
+    </form>
+    <ul id="gradesList"></ul>
+    <button id="nextBtn" disabled>Devam Et</button>
+  </div>
+
+  <script>
+    const field = localStorage.getItem('field');
+    const coreMap = {
+      numerical: ['Matematik','Fizik','Kimya','Biyoloji'],
+      equal_weight: ['Türkçe','Tarih','Coğrafya','Felsefe','Sosyoloji'],
+      no_field: [],
+      unhappy: []
+    };
+    const coreCourses = coreMap[field] || [];
+    const coreForm = document.getElementById('coreForm');
+    const gradesList = document.getElementById('gradesList');
+    const extraCourse = document.getElementById('extraCourse');
+    const extraScore = document.getElementById('extraScore');
+    const addBtn = document.getElementById('addBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function checkNext() {
+      return coreCourses.every(course => {
+        const inp = coreForm.querySelector(`input[data-course="${course}"]`);
+        return inp && inp.value !== '';
+      });
+    }
+
+    coreCourses.forEach(course => {
+      const label = document.createElement('label');
+      label.textContent = course;
+      const input = document.createElement('input');
+      input.type = 'number'; input.min = 0; input.max = 100; input.required = true;
+      input.dataset.course = course;
+      input.addEventListener('change', async () => {
+        const fd = new FormData();
+        fd.append('course', course);
+        fd.append('score', input.value);
+        const res = await fetch('/project2/app/save_grades.php', { method: 'POST', body: fd, credentials: 'include' });
+        if (!res.ok) alert('Hata: ' + await res.text());
+        if (checkNext()) nextBtn.disabled = false;
+      });
+      label.appendChild(input);
+      coreForm.appendChild(label);
+    });
+
+    addBtn.addEventListener('click', async () => {
+      const course = extraCourse.value.trim();
+      const score = extraScore.value;
+      if (!course || score === '') return;
+      const fd = new FormData();
+      fd.append('course', course);
+      fd.append('score', score);
+      const res = await fetch('/project2/app/save_grades.php', { method: 'POST', body: fd, credentials: 'include' });
+      if (!res.ok) return alert('Hata: ' + await res.text());
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${course}</span><span>${score}</span>`;
+      gradesList.appendChild(li);
+      extraCourse.value = '';
+      extraScore.value = '';
+      if (checkNext()) nextBtn.disabled = false;
+    });
+
+    nextBtn.addEventListener('click', () => location.href = 'personality.html');
+  </script>
+</body>
+</html>
